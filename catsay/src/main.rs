@@ -1,5 +1,6 @@
 use colored::*;
 use structopt::StructOpt;
+use failure::ResultExt;
 
 // cargo run -- --help
 #[derive(StructOpt, Debug)]
@@ -17,7 +18,7 @@ struct Options {
     catfile: Option<std::path::PathBuf>,
 }
 
-fn main() {
+fn main() -> Result<(),failure::Error>{
     let options = Options::from_args();
     let message = options.message;
 
@@ -36,8 +37,8 @@ fn main() {
     println!("{}", message.bright_yellow().underline().on_purple());
     match &options.catfile {
         Some(path) => {
-            let cat_template =
-                std::fs::read_to_string(path).expect(&format!("could not read file {:?}", path));
+            let cat_template = std::fs::read_to_string(path)
+                .with_context(|_| format!("could not read file {:?}", path))?;
             let cat_picture = cat_template.replace("{eye}", "o");
             println!("{}", &cat_picture);
         }
@@ -49,4 +50,6 @@ fn main() {
             println!("{pad}=( I )=", pad = " ".repeat(4));
         }
     }
+
+    Ok(())
 }
